@@ -1,0 +1,256 @@
+{
+  "info": {
+    "name": "Reqres API — QA Test Collection",
+    "description": "Sample API test collection built for portfolio purposes. Tests the public reqres.in demo API (GET/POST/PUT/DELETE on a users resource) using Postman's built-in test scripts. Runs against a live public endpoint so anyone can import and execute it directly — no credentials or setup required.\n\nAuthor: Miguel Angel Olivera\nContact: mangel.14om@gmail.com",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "GET - List Users (page 2)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://reqres.in/api/users?page=2",
+          "protocol": "https",
+          "host": ["reqres", "in"],
+          "path": ["api", "users"],
+          "query": [{ "key": "page", "value": "2" }]
+        },
+        "description": "Verifies the paginated list endpoint returns the requested page with the expected structure."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has expected page number', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.page).to.eql(2);",
+              "});",
+              "",
+              "pm.test('Data array is present and not empty', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.be.an('array');",
+              "    pm.expect(jsonData.data.length).to.be.above(0);",
+              "});",
+              "",
+              "pm.test('Each user has required fields', function () {",
+              "    const jsonData = pm.response.json();",
+              "    jsonData.data.forEach(function (user) {",
+              "        pm.expect(user).to.have.property('id');",
+              "        pm.expect(user).to.have.property('email');",
+              "        pm.expect(user).to.have.property('first_name');",
+              "        pm.expect(user).to.have.property('last_name');",
+              "    });",
+              "});",
+              "",
+              "pm.test('Response time is under 1000ms', function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET - Single User (valid ID)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://reqres.in/api/users/2",
+          "protocol": "https",
+          "host": ["reqres", "in"],
+          "path": ["api", "users", "2"]
+        },
+        "description": "Verifies a single, existing user is returned with correct data shape."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Returned user has correct id', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.id).to.eql(2);",
+              "});",
+              "",
+              "pm.test('User object contains email in valid format', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.email).to.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET - Single User (not found)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://reqres.in/api/users/23",
+          "protocol": "https",
+          "host": ["reqres", "in"],
+          "path": ["api", "users", "23"]
+        },
+        "description": "Negative test: requests a user ID that does not exist and confirms the API fails gracefully with 404, not a 500 or malformed response."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 404 for non-existent user', function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "",
+              "pm.test('Response body is an empty object', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(Object.keys(jsonData).length).to.eql(0);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST - Create User",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Miguel Olivera\",\n  \"job\": \"QA Engineer\"\n}"
+        },
+        "url": {
+          "raw": "https://reqres.in/api/users",
+          "protocol": "https",
+          "host": ["reqres", "in"],
+          "path": ["api", "users"]
+        },
+        "description": "Verifies a new resource is created successfully and the response echoes submitted data plus generated fields (id, createdAt)."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 201 Created', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Response echoes submitted name and job', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.name).to.eql('Miguel Olivera');",
+              "    pm.expect(jsonData.job).to.eql('QA Engineer');",
+              "});",
+              "",
+              "pm.test('Response includes generated id and createdAt', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "    pm.expect(jsonData).to.have.property('createdAt');",
+              "});",
+              "",
+              "// Save the generated id for use in later requests in this collection",
+              "pm.collectionVariables.set('createdUserId', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PUT - Update User",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Miguel Olivera\",\n  \"job\": \"Senior QA Engineer\"\n}"
+        },
+        "url": {
+          "raw": "https://reqres.in/api/users/2",
+          "protocol": "https",
+          "host": ["reqres", "in"],
+          "path": ["api", "users", "2"]
+        },
+        "description": "Verifies an existing resource can be updated and the response reflects the new data."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response reflects updated job title', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.job).to.eql('Senior QA Engineer');",
+              "});",
+              "",
+              "pm.test('Response includes updatedAt timestamp', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('updatedAt');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "DELETE - Remove User",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "https://reqres.in/api/users/2",
+          "protocol": "https",
+          "host": ["reqres", "in"],
+          "path": ["api", "users", "2"]
+        },
+        "description": "Verifies deletion returns the expected 204 No Content with an empty body."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 204 No Content', function () {",
+              "    pm.response.to.have.status(204);",
+              "});",
+              "",
+              "pm.test('Response body is empty', function () {",
+              "    pm.expect(pm.response.text().length).to.eql(0);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "createdUserId", "value": "" }
+  ]
+}
